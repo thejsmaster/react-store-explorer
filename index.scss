@@ -1,0 +1,54 @@
+/* #react-store-explorer-holder:hover span {
+  left: 19px !important; 
+  top: 19.5px !important; 
+  width: 10px !important;
+  height: 10px !important;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px !important;
+}
+
+#react-store-explorer-holder span {
+  transition: left 0.3s, top 0.3s, width 0.3s, height 0.3s, border-radius 0.3s;
+}
+
+#react-store-explorer-holder:active {
+  opacity: 0.7;
+}
+#react-store-explorer-holder:active span {
+  background-color: #eee !important;
+  width: 16px !important;
+  left: 16px !important;
+  top: 16.5px !important;
+  height: 16.5px !important;
+} */
+
+#react-store-explorer-holder {
+  position: relative;
+  overflow: hidden;
+
+  span {
+    transition: left 0.3s, top 0.3s, width 0.3s, height 0.3s, border-radius 0.3s;
+    position: relative;
+    border-radius: 10px !important;
+  }
+
+  &:hover span {
+    left: 19px !important; /* Changed left value to 21.5px */
+    top: 19.5px !important; /* Changed top value to 21.5px */
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  &:active {
+    opacity: 0.7;
+
+    span {
+      background-color: #eee !important;
+      width: 16px !important;
+      left: 16px !important;
+      top: 16.5px !important;
+      height: 16.5px !important;
+    }
+  }
+}
