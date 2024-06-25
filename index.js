@@ -64,7 +64,7 @@ const Collapsable = ({ children, label, isUseXState = true, RightHeaderContent =
             } }, children)));
 };
 
-const ValueRenderer = ({ text }) => {
+const ValueRenderer = ({ text, valueRef }) => {
     const [highlighted, setHighlighted] = React.useState(false);
     const [firstRender, setFirstRender] = React.useState(true);
     React.useEffect(() => {
@@ -78,7 +78,7 @@ const ValueRenderer = ({ text }) => {
         else {
             setFirstRender(false);
         }
-    }, [text]);
+    }, [text, valueRef]);
     const highlightStyle = highlighted
         ? {
             backgroundColor: "rgba(0, 255, 0, 0.5)",
@@ -88,17 +88,36 @@ const ValueRenderer = ({ text }) => {
             backgroundColor: "rgba(0, 255, 0, 0)",
             transition: "background-color 2s",
         };
-    return (React.createElement("span", { title: text + "", style: Object.assign(Object.assign({}, highlightStyle), { padding: "0px 5px", borderRadius: "4px" }) }, text === null ? (React.createElement("span", { style: { color: "orange" } }, "null")) : text === undefined ? (React.createElement("span", { style: { color: "orange" } }, "undefined")) : typeof text === "function" ? (React.createElement("b", null, "Function")) : text === "" ? (React.createElement("i", null, "''")) : typeof text === "string" ? (React.createElement("span", { style: { color: "#444" } }, text)) : ((text + "").slice(0, 100) + "" + ((text + "").length > 100 ? "..." : ""))));
+    return (React.createElement("span", { title: typeof text === "string"
+            ? text
+            : Array.isArray(text)
+                ? "Array"
+                : typeof text, style: Object.assign(Object.assign({}, highlightStyle), { padding: "0px 5px", borderRadius: "4px" }) }, text === null ? (React.createElement("span", { style: { color: "orange" } }, "null")) : text === undefined ? (React.createElement("span", { style: { color: "orange" } }, "undefined")) : typeof text === "function" ? (React.createElement("b", null, "Function")) : text === "" ? (React.createElement("i", null, "''")) : typeof text === "string" ? (React.createElement("span", { style: { color: "#444" } }, text)) : ((text + "").slice(0, 100) + "" + ((text + "").length > 100 ? "..." : ""))));
 };
 
 function buildObjectOrArrayPreview(obj) {
-    let val = Object.keys(obj).slice(0, 5).join(", ");
-    if (val.length > 10)
-        val = val.substring(0, 15) + "...";
-    else if (Object.keys(obj).length > 4) {
-        val = val + "...";
+    if (Array.isArray(obj)) {
+        let val = "";
+        if (obj.length > 6)
+            val = "0,1,2,3,4..." + (obj.length - 1);
+        if (obj.length <= 6) {
+            val = "1 "
+                .repeat(obj.length - 1)
+                .split(" ")
+                .map((a, b) => b)
+                .join(",");
+        }
+        return "[" + val + "]";
     }
-    return Array.isArray(obj) ? "[" + val + "]" : "{" + val + "}";
+    else {
+        let val = Object.keys(obj).slice(0, 5).join(", ");
+        if (val.length > 10)
+            val = val.substring(0, 15) + "...";
+        else if (Object.keys(obj).length > 4) {
+            val = val + "...";
+        }
+        return "{" + val + "}";
+    }
 }
 
 const LabelRenderer = ({ label }) => {
@@ -165,15 +184,17 @@ const Treeview = ({ state, autoOpenFirstLevel = false }) => {
                         ":",
                         " ",
                         Array.isArray(state[item]) ? (React.createElement("b", null,
-                            React.createElement("i", { title: "Array", style: { color: "#555", fontSize: "12px" } }, state[item].length > 0
-                                ? buildObjectOrArrayPreview(state[item])
-                                : " []"))) : (React.createElement("b", null,
-                            React.createElement("i", { title: "Object", style: { color: "#555", fontSize: "12px" } }, Object.keys(state[item]).length > 0
-                                ? buildObjectOrArrayPreview(state[item])
-                                : " {}")))),
+                            React.createElement("i", { title: "Array", style: { color: "#555", fontSize: "12px" } },
+                                React.createElement(ValueRenderer, { text: state[item].length > 0
+                                        ? buildObjectOrArrayPreview(state[item])
+                                        : " []", valueRef: state[item] })))) : (React.createElement("b", null,
+                            React.createElement("i", { title: "Object", style: { color: "#555", fontSize: "12px" } },
+                                React.createElement(ValueRenderer, { text: Object.keys(state[item]).length > 0
+                                        ? buildObjectOrArrayPreview(state[item])
+                                        : " {}", valueRef: state[item] }))))),
                     openList.includes(item) &&
                         state[item] &&
-                        typeof state[item] === "object" && (React.createElement(Treeview, { state: state[item] })))) : (React.createElement("div", { style: { marginTop: "3px", width: "auto" } },
+                        typeof state[item] === "object" && (React.createElement(Treeview, { state: state[item] })))) : (React.createElement("div", { key: i, style: { marginTop: "3px", width: "auto" } },
                     React.createElement("b", { style: { marginLeft: "10px" } },
                         React.createElement(LabelRenderer, { label: item }),
                         " "),
@@ -190,7 +211,7 @@ const StateView = ({ state, boldFont = true, autoOpenFirstLevel = false, }) => {
 
 const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, maxLogCount, }) => {
     const [selectedTab, setSelectedTab] = React.useState(0);
-    const tabs = ["State", "Set Logs"];
+    const tabs = ["State", "Change Logs"];
     const spanStyle = (isSelected) => {
         return {
             border: " 1px solid #DDD",
@@ -220,11 +241,24 @@ const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, ma
             item,
             " ",
             i === 1 && React.createElement(ValueRenderer, { text: index }))))),
-        React.createElement("div", { style: { display: selectedTab === 0 ? "block" : "none" } },
-            React.createElement(StateView, { state: actualState })),
+        React.createElement("div", { style: { display: selectedTab === 0 ? "block" : "none" } }, typeof actualState === "object" ? (React.createElement(StateView, { state: actualState })) : (actualState)),
         React.createElement("div", { style: { display: selectedTab === 1 ? "block" : "none" } },
             changeList.length > 0 && (React.createElement(React.Fragment, null,
                 " ",
+                React.createElement("div", null,
+                    " ",
+                    React.createElement("span", { style: { paddingRight: "5px" } },
+                        " ",
+                        React.createElement("b", null, "R"),
+                        "eact",
+                        " "),
+                    React.createElement("span", { style: { paddingRight: "5px" } },
+                        React.createElement("b", null, " U"),
+                        "pdate",
+                        " "),
+                    React.createElement("span", { style: { paddingRight: "5px" } },
+                        React.createElement("b", null, " S"),
+                        "et")),
                 React.createElement("div", { style: { padding: "10px", marginBottom: "10px" } },
                     index > maxLogCount && (React.createElement("span", null,
                         React.createElement("i", null,
@@ -240,15 +274,22 @@ const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, ma
                             setIndex(0);
                         } },
                         React.createElement("i", null, "Clear Logs"))))),
-            changeList.map((item) => {
-                return (React.createElement("div", { style: {
+            changeList.map((item, key) => {
+                return (React.createElement("div", { key: key, style: {
                         borderBottom: "1px solid #CCC",
                     } },
                     " ",
+                    (item.functionName || item.fileName) && (React.createElement("div", { style: { textAlign: "center", padding: "5px" } },
+                        item.functionName,
+                        " - ",
+                        item.fileName)),
                     React.createElement("span", { style: { float: "right", clear: "both", paddingRight: "10px" } }, item.index),
                     " ",
                     React.createElement(StateView, { state: {
-                            [(item.path || "*") +
+                            ["(" +
+                                item.from.toUpperCase().slice(0, 1) +
+                                ") " +
+                                (item.path || "*") +
                                 (item.type === "add"
                                     ? "[A]"
                                     : item.type === "update"
@@ -259,34 +300,26 @@ const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, ma
         React.createElement("div", { style: { marginTop: "10px" } })));
 };
 
-const useStore = (getSetInstance, maxLogCount) => {
-    const [state, setState] = React.useState(getSetInstance.get());
+const useStoreExplorer = (getSetInstance, maxLogCount) => {
+    const [state, setState] = React.useState(getSetInstance.getState());
     const [changes, setChanges] = React.useState([]);
     const [index, setIndex] = React.useState(0);
     React.useEffect(() => {
         const fn = (changesList) => {
-            setState(getSetInstance.get());
-            let newIndex = index + changesList.length;
-            console.log("changelist", changesList);
-            const newChanges = [
-                ...changesList.map((item) => (Object.assign(Object.assign({}, item), { index: newIndex-- }))),
+            setState(getSetInstance.getState());
+            setChanges((changes) => [
+                ...changesList.map((item) => (Object.assign(Object.assign({}, item), { index: index + 1 }))),
                 ...changes,
-            ].slice(0, maxLogCount);
-            console.log("new", newChanges);
-            setChanges(newChanges);
-            setIndex(index + changesList.length);
+            ].slice(0, maxLogCount));
+            setIndex(index + 1);
         };
-        getSetInstance.subscribe(fn);
-        return () => {
-            getSetInstance.unsubscribe(fn);
-        };
+        return getSetInstance.subscribe(fn, "store-explorer");
     }, [state, setState, changes, setChanges]);
-    console.log("changes", changes);
     return { state, changes, setChanges, index, setIndex };
 };
 
 const CollapsableWrapper = ({ stateValue, name, maxLogCount }) => {
-    const { state: actualState, changes: changeList, setChanges, index, setIndex, } = useStore(stateValue, maxLogCount);
+    const { state: actualState, changes: changeList, setChanges, index, setIndex, } = useStoreExplorer(stateValue, maxLogCount);
     return (React.createElement(Collapsable, { label: name, state: actualState, changeList: changeList, setChanges: setChanges, index: index, setIndex: setIndex, RightHeaderContent: ({ open }) => {
             return (!open && (React.createElement("b", { style: {
                     float: "right",
@@ -300,9 +333,33 @@ const CollapsableWrapper = ({ stateValue, name, maxLogCount }) => {
             React.createElement(Switch, { changeList: changeList, setChanges: setChanges, maxLogCount: maxLogCount, index: index, setIndex: setIndex, actualState: actualState, name: name }))));
 };
 
-const DevTools = ({ store = {}, XIconPosition = { bottom: "50px", right: "50px" }, keepOpen = false, iconColor = "rgb(233 62 44)", hideIcon = false, maxLogCount = 15, disableToggleESCKey = false, }) => {
+const DevTools = ({ stores = {}, XIconPosition = { bottom: "50px", right: "50px" }, keepOpen = false, iconColor = "rgb(233 62 44)", hideIcon = false, maxLogCount = 15, disableToggleESCKey = false, }) => {
     const [showTools, setShowTools] = React.useState(keepOpen || false);
-    React.useState(0);
+    React.useEffect(() => {
+        function addCssToHead() {
+            const cssString = `#react-store-explorer-holder{position:relative;overflow:hidden}#react-store-explorer-holder span{transition:left 0.3s,top 0.3s,width 0.3s,height 0.3s,border-radius 0.3s;position:relative;border-radius:10px!important}#react-store-explorer-holder:hover span{left:19px!important;top:19.5px!important;width:10px!important;height:10px!important}#react-store-explorer-holder:active{opacity:0.7}#react-store-explorer-holder:active span{background-color:#eee!important;width:16px!important;left:16px!important;top:16.5px!important;height:16.5px!important}`;
+            const id = "234lsaoep23mohiuwelpmvonou";
+            // Check if the style element with the ID already exists
+            if (!document.getElementById(id)) {
+                // Create a style element
+                const style = document.createElement("style");
+                // Set the ID and CSS text
+                style.id = id;
+                style.textContent = cssString;
+                // Append the style element to the head
+                document.head.appendChild(style);
+            }
+        }
+        // Call the function to add the CSS to the head
+        addCssToHead();
+        // Clean up function to remove the style element when component unmounts
+        return () => {
+            const styleElement = document.getElementById("234lsaoep23mohiuwelpmvonou");
+            if (styleElement) {
+                styleElement.parentNode.removeChild(styleElement);
+            }
+        };
+    }, []);
     React.useEffect(() => {
         function handleKeyPress(event) {
             if (event.key === "Escape") {
@@ -320,6 +377,7 @@ const DevTools = ({ store = {}, XIconPosition = { bottom: "50px", right: "50px" 
         React.createElement("div", { id: "react-store-explorer-container" },
             " ",
             React.createElement("div", { id: "usex-devtools", style: {
+                    lineHeight: 1.5,
                     zIndex: 1000000000,
                     height: "100%",
                     width: "420px",
@@ -343,16 +401,16 @@ const DevTools = ({ store = {}, XIconPosition = { bottom: "50px", right: "50px" 
                         padding: "10px",
                     } },
                     React.createElement("span", { style: { fontWeight: "bold", fontSize: "18px" } }, "react-store-explorer")),
-                React.createElement(ErrorBoundary, { Error: ErrorComponent }, Object.keys(store).map((key) => {
-                    const stateValue = store[key];
+                React.createElement(ErrorBoundary, { Error: ErrorComponent }, Object.keys(stores).sort().map((key) => {
+                    const stateValue = stores[key];
                     return stateValue &&
-                        !!stateValue.get &&
-                        !!stateValue.subscribe &&
-                        !!stateValue.unsubscribe ? (React.createElement(ErrorBoundary, { Error: ErrorComponent },
-                        React.createElement("div", { key: key },
-                            React.createElement(CollapsableWrapper, { maxLogCount: maxLogCount, stateValue: stateValue, name: key })))) : (React.createElement(React.Fragment, null));
+                        !!stateValue.getState &&
+                        !!stateValue.subscribe ? (React.createElement("div", { key: key },
+                        React.createElement(ErrorBoundary, { Error: ErrorComponent },
+                            React.createElement(CollapsableWrapper, { maxLogCount: maxLogCount, stateValue: stateValue, name: key }),
+                            " "))) : (React.createElement(React.Fragment, null));
                 })),
-                Object.keys(store).length === 0 && (React.createElement("div", { style: { textAlign: "center", marginTop: "10px" } },
+                Object.keys(stores).length === 0 && (React.createElement("div", { style: { textAlign: "center", marginTop: "10px" } },
                     " ",
                     React.createElement("i", null, "Store is Empty")))),
             !hideIcon && (React.createElement("div", { onMouseDown: () => {
@@ -399,33 +457,8 @@ const DevTools = ({ store = {}, XIconPosition = { bottom: "50px", right: "50px" 
                         } })))))));
 };
 
-function ReactStoreExplorer$1(props) {
+function ReactStoreExplorer(props) {
     const { enableDevTools = true, keepOpen = false } = props;
-    React.useEffect(() => {
-        function addCssToHead() {
-            const cssString = `#react-store-explorer-holder{position:relative;overflow:hidden}#react-store-explorer-holder span{transition:left 0.3s,top 0.3s,width 0.3s,height 0.3s,border-radius 0.3s;position:relative;border-radius:10px!important}#react-store-explorer-holder:hover span{left:19px!important;top:19.5px!important;width:10px!important;height:10px!important}#react-store-explorer-holder:active{opacity:0.7}#react-store-explorer-holder:active span{background-color:#eee!important;width:16px!important;left:16px!important;top:16.5px!important;height:16.5px!important}`;
-            const id = "234lsaoep23mohiuwelpmvonou";
-            // Check if the style element with the ID already exists
-            if (!document.getElementById(id)) {
-                // Create a style element
-                const style = document.createElement("style");
-                // Set the ID and CSS text
-                style.id = id;
-                style.textContent = cssString;
-                // Append the style element to the head
-                document.head.appendChild(style);
-            }
-        }
-        // Call the function to add the CSS to the head
-        addCssToHead();
-        // Clean up function to remove the style element when component unmounts
-        return () => {
-            const styleElement = document.getElementById("234lsaoep23mohiuwelpmvonou");
-            if (styleElement) {
-                styleElement.parentNode.removeChild(styleElement);
-            }
-        };
-    }, []);
     return (React.createElement(React.Fragment, null,
         React.createElement(ErrorBoundary, { Error: ErrorComponent },
             React.createElement("div", { style: { paddingRight: keepOpen ? "400px" : "0px" } },
@@ -435,7 +468,7 @@ function ReactStoreExplorer$1(props) {
             React.createElement(DevTools, Object.assign({}, props))))));
 }
 
-const ReactStoreExplorer = ReactStoreExplorer$1;
+const StoreExplorer = ReactStoreExplorer;
 
-exports.ReactStoreExplorer = ReactStoreExplorer;
+exports.StoreExplorer = StoreExplorer;
 //# sourceMappingURL=index.js.map

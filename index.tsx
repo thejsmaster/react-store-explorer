@@ -1,3 +1,3 @@
 import { ReactStoreExplorer as S } from "./DevToolsWrapper";
 
-export const ReactStoreExplorer = S;
+export const StoreExplorer = S;

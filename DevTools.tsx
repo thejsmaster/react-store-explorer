@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { TXDevToolsProps } from "./types";
 import { ErrorComponent, ErrorBoundary } from "./ErrorComponent";
-import { Switch } from "./Switch";
-import { Collapsable } from "./Collapsable";
 
 import { CollapsableWrapper } from "./CollapsableWrapper";
 
 export const DevTools = ({
-  store = {},
+  stores = {},
   XIconPosition = { bottom: "50px", right: "50px" },
   keepOpen = false,
   iconColor = "rgb(233 62 44)",
@@ -16,7 +14,6 @@ export const DevTools = ({
   disableToggleESCKey = false,
 }: TXDevToolsProps) => {
   const [showTools, setShowTools] = useState(keepOpen || false);
-  const [count, setCount] = useState(0);
   useEffect(() => {
     function addCssToHead() {
       const cssString = `#react-store-explorer-holder{position:relative;overflow:hidden}#react-store-explorer-holder span{transition:left 0.3s,top 0.3s,width 0.3s,height 0.3s,border-radius 0.3s;position:relative;border-radius:10px!important}#react-store-explorer-holder:hover span{left:19px!important;top:19.5px!important;width:10px!important;height:10px!important}#react-store-explorer-holder:active{opacity:0.7}#react-store-explorer-holder:active span{background-color:#eee!important;width:16px!important;left:16px!important;top:16.5px!important;height:16.5px!important}`;
@@ -72,6 +69,7 @@ export const DevTools = ({
         <div
           id="usex-devtools"
           style={{
+            lineHeight: 1.5,
             zIndex: 1000000000,
             height: "100%",
             width: "420px",
@@ -105,28 +103,27 @@ export const DevTools = ({
           </div>
 
           <ErrorBoundary Error={ErrorComponent}>
-            {Object.keys(store).map((key: any) => {
-              const stateValue = store[key];
+            {Object.keys(stores).sort().map((key: any) => {
+              const stateValue = stores[key];
               return stateValue &&
-                !!stateValue.get &&
-                !!stateValue.subscribe &&
-                !!stateValue.unsubscribe ? (
-                <ErrorBoundary Error={ErrorComponent}>
-                  <div key={key}>
+                !!stateValue.getState &&
+                !!stateValue.subscribe ? (
+                <div key={key}>
+                  <ErrorBoundary Error={ErrorComponent}>
                     <CollapsableWrapper
                       maxLogCount={maxLogCount}
                       stateValue={stateValue}
                       name={key}
-                    />
-                  </div>
-                </ErrorBoundary>
+                    />{" "}
+                  </ErrorBoundary>
+                </div>
               ) : (
                 <></>
               );
             })}
           </ErrorBoundary>
 
-          {Object.keys(store).length === 0 && (
+          {Object.keys(stores).length === 0 && (
             <div style={{ textAlign: "center", marginTop: "10px" }}>
               {" "}
               <i>Store is Empty</i>

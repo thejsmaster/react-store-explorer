@@ -1,10 +1,11 @@
 import { ErrorBoundary, ErrorComponent } from "./ErrorComponent";
-import React, { useEffect } from "react";
 import { DevTools } from "./DevTools";
 import { TXDevToolsProps } from "./types";
+import React from "react";
 
 export function ReactStoreExplorer(props: TXDevToolsProps) {
   const { enableDevTools = true, keepOpen = false } = props;
+
   return (
     <>
       <ErrorBoundary Error={ErrorComponent}>

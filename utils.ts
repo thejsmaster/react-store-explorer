@@ -1,10 +1,23 @@
 export function buildObjectOrArrayPreview(obj: any) {
-  let val = Object.keys(obj).slice(0, 5).join(", ");
-  if (val.length > 10) val = val.substring(0, 15) + "...";
-  else if (Object.keys(obj).length > 4) {
-    val = val + "...";
+  if (Array.isArray(obj)) {
+    let val = "";
+    if (obj.length > 6) val = "0,1,2,3,4..." + (obj.length - 1);
+    if (obj.length <= 6) {
+      val = "1 "
+        .repeat(obj.length - 1)
+        .split(" ")
+        .map((a, b) => b)
+        .join(",");
+    }
+    return "[" + val + "]";
+  } else {
+    let val = Object.keys(obj).slice(0, 5).join(", ");
+    if (val.length > 10) val = val.substring(0, 15) + "...";
+    else if (Object.keys(obj).length > 4) {
+      val = val + "...";
+    }
+    return "{" + val + "}";
   }
-  return Array.isArray(obj) ? "[" + val + "]" : "{" + val + "}";
 }
 export function Timer(targetTime: any) {
   if (!targetTime || typeof targetTime !== "string") {
@@ -66,4 +79,17 @@ export function formatTimeExtended(timeString: string) {
     "ms";
 
   return formattedTime;
+}
+
+export function getAllProps(instance: any): any[] {
+  const props: string[] = Object.keys(instance);
+  let currentPrototype = Object.getPrototypeOf(instance);
+  while (currentPrototype !== null && currentPrototype !== Object.prototype) {
+    props.push(...Object.getOwnPropertyNames(currentPrototype));
+    currentPrototype = Object.getPrototypeOf(currentPrototype);
+  }
+  const unique = [...(new Set(props)?.values?.() || [])].filter(
+    (item) => item !== "constructor"
+  );
+  return unique;
 }

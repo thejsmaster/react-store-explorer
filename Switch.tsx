@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { ValueRenderer } from "./ValueRenderer";
 import { StateView } from "./StateView";
 import { formatTimeExtended } from "./utils";
-import { useStore } from "./useStore";
 
 export const Switch = ({
   actualState,
@@ -14,7 +13,7 @@ export const Switch = ({
   maxLogCount,
 }: any) => {
   const [selectedTab, setSelectedTab] = useState<number>(0);
-  const tabs = ["State", "Set Logs"];
+  const tabs = ["State", "Change Logs"];
 
   const spanStyle = (isSelected: boolean) => {
     return {
@@ -56,13 +55,30 @@ export const Switch = ({
         ))}
       </div>
       <div style={{ display: selectedTab === 0 ? "block" : "none" }}>
-        <StateView state={actualState} />
+        {typeof actualState === "object" ? (
+          <StateView state={actualState} />
+        ) : (
+          actualState
+        )}
       </div>
 
       <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
         {changeList.length > 0 && (
           <>
             {" "}
+            <div>
+              {" "}
+              <span style={{ paddingRight: "5px" }}>
+                {" "}
+                <b>R</b>eact{" "}
+              </span>
+              <span style={{ paddingRight: "5px" }}>
+                <b> U</b>pdate{" "}
+              </span>
+              <span style={{ paddingRight: "5px" }}>
+                <b> S</b>et
+              </span>
+            </div>
             <div style={{ padding: "10px", marginBottom: "10px" }}>
               {index > maxLogCount && (
                 <span>
@@ -85,14 +101,20 @@ export const Switch = ({
             </div>
           </>
         )}
-        {changeList.map((item: any) => {
+        {changeList.map((item: any, key: number) => {
           return (
             <div
+              key={key}
               style={{
                 borderBottom: "1px solid #CCC",
               }}
             >
               {" "}
+              {(item.functionName || item.fileName) && (
+                <div style={{ textAlign: "center", padding: "5px" }}>
+                  {item.functionName} - {item.fileName}
+                </div>
+              )}
               <span
                 style={{ float: "right", clear: "both", paddingRight: "10px" }}
               >
@@ -100,7 +122,10 @@ export const Switch = ({
               </span>{" "}
               <StateView
                 state={{
-                  [(item.path || "*") +
+                  ["(" +
+                  item.from.toUpperCase().slice(0, 1) +
+                  ") " +
+                  (item.path || "*") +
                   (item.type === "add"
                     ? "[A]"
                     : item.type === "update"

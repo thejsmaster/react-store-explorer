@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-export const ValueRenderer = ({ text }: any) => {
+export const ValueRenderer = ({ text, valueRef }: any) => {
   const [highlighted, setHighlighted] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
   useEffect(() => {
@@ -14,7 +14,7 @@ export const ValueRenderer = ({ text }: any) => {
     } else {
       setFirstRender(false);
     }
-  }, [text]);
+  }, [text, valueRef]);
 
   const highlightStyle = highlighted
     ? {
@@ -28,7 +28,13 @@ export const ValueRenderer = ({ text }: any) => {
 
   return (
     <span
-      title={text + ""}
+      title={
+        typeof text === "string"
+          ? text
+          : Array.isArray(text)
+          ? "Array"
+          : typeof text
+      }
       style={{
         ...highlightStyle,
         padding: "0px 5px",

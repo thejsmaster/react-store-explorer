@@ -1,11 +1,8 @@
-export type StateType = Record<
-  string,
-  {
-    get: () => object;
-    subscribe: (callback: () => void) => void;
-    unsubscribe: (callback: () => void) => void;
-  }
->;
+export type StateType = Record<string, StoreType>;
+export type StoreType = {
+  getState: () => object;
+  subscribe: (callback: () => void) => void;
+};
 export type TXDevToolsProps = {
   XIconPosition?: {
     left?: string;
@@ -15,7 +12,7 @@ export type TXDevToolsProps = {
   };
   iconColor?: string;
   maxLogCount?: number;
-  store: StateType;
+  stores: StateType;
   keepOpen?: boolean;
   enableConsoleLogging?: boolean;
   hideIcon?: boolean;

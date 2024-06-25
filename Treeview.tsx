@@ -84,9 +84,14 @@ export const Treeview = ({ state, autoOpenFirstLevel = false }: any) => {
                         title="Array"
                         style={{ color: "#555", fontSize: "12px" }}
                       >
-                        {state[item].length > 0
-                          ? buildObjectOrArrayPreview(state[item])
-                          : " []"}
+                        <ValueRenderer
+                          text={
+                            state[item].length > 0
+                              ? buildObjectOrArrayPreview(state[item])
+                              : " []"
+                          }
+                          valueRef={state[item]}
+                        />
                       </i>
                     </b>
                   ) : (
@@ -95,9 +100,14 @@ export const Treeview = ({ state, autoOpenFirstLevel = false }: any) => {
                         title="Object"
                         style={{ color: "#555", fontSize: "12px" }}
                       >
-                        {Object.keys(state[item]).length > 0
-                          ? buildObjectOrArrayPreview(state[item])
-                          : " {}"}
+                        <ValueRenderer
+                          text={
+                            Object.keys(state[item]).length > 0
+                              ? buildObjectOrArrayPreview(state[item])
+                              : " {}"
+                          }
+                          valueRef={state[item]}
+                        />
                       </i>
                     </b>
                   )}
@@ -109,7 +119,7 @@ export const Treeview = ({ state, autoOpenFirstLevel = false }: any) => {
                   )}
               </div>
             ) : (
-              <div style={{ marginTop: "3px", width: "auto" }}>
+              <div key={i} style={{ marginTop: "3px", width: "auto" }}>
                 <b style={{ marginLeft: "10px" }}>
                   <LabelRenderer label={item} />{" "}
                 </b>

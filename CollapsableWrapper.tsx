@@ -1,7 +1,7 @@
 import { Collapsable } from "./Collapsable";
 import { ErrorBoundary, ErrorComponent } from "./ErrorComponent";
 import { Switch } from "./Switch";
-import { useStore } from "./useStore";
+import { useStoreExplorer } from "./useStoreExplorer";
 import React from "react";
 export const CollapsableWrapper = ({ stateValue, name, maxLogCount }: any) => {
   const {
@@ -9,9 +9,8 @@ export const CollapsableWrapper = ({ stateValue, name, maxLogCount }: any) => {
     changes: changeList,
     setChanges,
     index,
-
     setIndex,
-  } = useStore(stateValue, maxLogCount);
+  } = useStoreExplorer(stateValue, maxLogCount);
 
   return (
     <Collapsable
