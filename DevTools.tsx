@@ -3,7 +3,6 @@ import { TXDevToolsProps } from "./types";
 import { ErrorComponent, ErrorBoundary } from "./ErrorComponent";
 
 import { CollapsableWrapper } from "./CollapsableWrapper";
-
 export const DevTools = ({
   stores = {},
   XIconPosition = { bottom: "50px", right: "50px" },
@@ -11,6 +10,7 @@ export const DevTools = ({
   iconColor = "rgb(233 62 44)",
   hideIcon = false,
   maxLogCount = 15,
+  from = "get-set-react",
   disableToggleESCKey = false,
 }: TXDevToolsProps) => {
   const [showTools, setShowTools] = useState(keepOpen || false);
@@ -43,7 +43,7 @@ export const DevTools = ({
         "234lsaoep23mohiuwelpmvonou"
       );
       if (styleElement) {
-        styleElement.parentNode.removeChild(styleElement);
+        styleElement?.parentNode?.removeChild?.(styleElement);
       }
     };
   }, []);
@@ -103,24 +103,27 @@ export const DevTools = ({
           </div>
 
           <ErrorBoundary Error={ErrorComponent}>
-            {Object.keys(stores).sort().map((key: any) => {
-              const stateValue = stores[key];
-              return stateValue &&
-                !!stateValue.getState &&
-                !!stateValue.subscribe ? (
-                <div key={key}>
-                  <ErrorBoundary Error={ErrorComponent}>
-                    <CollapsableWrapper
-                      maxLogCount={maxLogCount}
-                      stateValue={stateValue}
-                      name={key}
-                    />{" "}
-                  </ErrorBoundary>
-                </div>
-              ) : (
-                <></>
-              );
-            })}
+            {Object.keys(stores)
+              .sort()
+              .map((key: any) => {
+                const stateValue = stores[key];
+                return stateValue &&
+                  !!stateValue.getState &&
+                  !!stateValue.subscribe ? (
+                  <div key={key}>
+                    <ErrorBoundary Error={ErrorComponent}>
+                      <CollapsableWrapper
+                        from={from}
+                        maxLogCount={maxLogCount}
+                        stateValue={stateValue}
+                        name={key}
+                      />{" "}
+                    </ErrorBoundary>
+                  </div>
+                ) : (
+                  <></>
+                );
+              })}
           </ErrorBoundary>
 
           {Object.keys(stores).length === 0 && (

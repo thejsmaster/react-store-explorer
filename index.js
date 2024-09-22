@@ -209,9 +209,9 @@ const StateView = ({ state, boldFont = true, autoOpenFirstLevel = false, }) => {
             React.createElement(Treeview, { autoOpenFirstLevel: autoOpenFirstLevel, state: state, boldFont: boldFont }))));
 };
 
-const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, maxLogCount, }) => {
+const Switch = ({ from, actualState, changeList, setChanges, previousStates = [], setIndex, index, name, maxLogCount, }) => {
     const [selectedTab, setSelectedTab] = React.useState(0);
-    const tabs = ["State", "Change Logs"];
+    const tabs = ["State", "Change Logs", "prev states"];
     const spanStyle = (isSelected) => {
         return {
             border: " 1px solid #DDD",
@@ -242,7 +242,17 @@ const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, ma
             " ",
             i === 1 && React.createElement(ValueRenderer, { text: index }))))),
         React.createElement("div", { style: { display: selectedTab === 0 ? "block" : "none" } }, typeof actualState === "object" ? (React.createElement(StateView, { state: actualState })) : (actualState)),
+        React.createElement("div", { style: { display: selectedTab === 2 ? "block" : "none" } },
+            (previousStates === null || previousStates === void 0 ? void 0 : previousStates.length) > 9 && (React.createElement("span", null,
+                React.createElement("i", null,
+                    "only showing the last ",
+                    10,
+                    " previous states"))),
+            typeof previousStates === "object" ? (React.createElement(StateView, { state: previousStates })) : (actualState)),
         React.createElement("div", { style: { display: selectedTab === 1 ? "block" : "none" } },
+            from !== "get-set-react" && (React.createElement(React.Fragment, null,
+                "only basic version of change logs is supported for ",
+                from)),
             changeList.length > 0 && (React.createElement(React.Fragment, null,
                 " ",
                 React.createElement("div", null,
@@ -274,7 +284,7 @@ const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, ma
                             setIndex(0);
                         } },
                         React.createElement("i", null, "Clear Logs"))))),
-            changeList.map((item, key) => {
+            (changeList || []).map((item, key) => {
                 return (React.createElement("div", { key: key, style: {
                         borderBottom: "1px solid #CCC",
                     } },
@@ -300,26 +310,67 @@ const Switch = ({ actualState, changeList, setChanges, setIndex, index, name, ma
         React.createElement("div", { style: { marginTop: "10px" } })));
 };
 
-const useStoreExplorer = (getSetInstance, maxLogCount) => {
+const useStoreExplorer = (from, getSetInstance, maxLogCount) => {
     const [state, setState] = React.useState(getSetInstance.getState());
+    const [previousStates, setPreviousStates] = React.useState([]);
     const [changes, setChanges] = React.useState([]);
     const [index, setIndex] = React.useState(0);
     React.useEffect(() => {
-        const fn = (changesList) => {
+        const fn = (changesList = []) => {
+            state !== getSetInstance.getState() &&
+                setPreviousStates((prev) => [state, ...prev].slice(0, 10));
             setState(getSetInstance.getState());
-            setChanges((changes) => [
-                ...changesList.map((item) => (Object.assign(Object.assign({}, item), { index: index + 1 }))),
-                ...changes,
-            ].slice(0, maxLogCount));
+            from === "get-set-react" &&
+                changesList &&
+                Array.isArray(changesList) &&
+                changesList.length > 0
+                ? setChanges((changes) => [
+                    ...changesList.map((item) => (Object.assign(Object.assign({}, item), { index: index + 1 }))),
+                    ...changes,
+                ].slice(0, maxLogCount))
+                : setChanges((changes) => [
+                    ...compareObjects(state, getSetInstance.getState()).map((item) => (Object.assign(Object.assign({}, item), { index: index + 1 }))),
+                    ...changes,
+                ].slice(0, maxLogCount));
             setIndex(index + 1);
         };
         return getSetInstance.subscribe(fn, "store-explorer");
     }, [state, setState, changes, setChanges]);
-    return { state, changes, setChanges, index, setIndex };
+    return { state, previousStates, changes, setChanges, index, setIndex };
 };
+function createChange(path, type, value) {
+    return {
+        path,
+        type,
+        value,
+        id: Math.random().toString(),
+        functionName: "",
+        fileName: "",
+        from: "set",
+    };
+}
+function compareObjects(obj1, obj2) {
+    const changes = [];
+    // Handle updates and deletions
+    Object.keys(obj1).forEach((key) => {
+        if (!(key in obj2)) {
+            changes.push(createChange(key, "delete"));
+        }
+        else if (obj1[key] !== obj2[key]) {
+            changes.push(createChange(key, "update", obj2[key]));
+        }
+    });
+    // Handle additions
+    Object.keys(obj2).forEach((key) => {
+        if (!(key in obj1)) {
+            changes.push(createChange(key, "add", obj2[key]));
+        }
+    });
+    return changes;
+}
 
-const CollapsableWrapper = ({ stateValue, name, maxLogCount }) => {
-    const { state: actualState, changes: changeList, setChanges, index, setIndex, } = useStoreExplorer(stateValue, maxLogCount);
+const CollapsableWrapper = ({ from, stateValue, name, maxLogCount, }) => {
+    const { state: actualState, changes: changeList, setChanges, index, setIndex, previousStates, } = useStoreExplorer(from, stateValue, maxLogCount);
     return (React.createElement(Collapsable, { label: name, state: actualState, changeList: changeList, setChanges: setChanges, index: index, setIndex: setIndex, RightHeaderContent: ({ open }) => {
             return (!open && (React.createElement("b", { style: {
                     float: "right",
@@ -330,10 +381,10 @@ const CollapsableWrapper = ({ stateValue, name, maxLogCount }) => {
                 index > 0 ? index : "")));
         } },
         React.createElement(ErrorBoundary, { Error: ErrorComponent },
-            React.createElement(Switch, { changeList: changeList, setChanges: setChanges, maxLogCount: maxLogCount, index: index, setIndex: setIndex, actualState: actualState, name: name }))));
+            React.createElement(Switch, { changeList: changeList, setChanges: setChanges, maxLogCount: maxLogCount, index: index, from: from, previousStates: previousStates, setIndex: setIndex, actualState: actualState, name: name }))));
 };
 
-const DevTools = ({ stores = {}, XIconPosition = { bottom: "50px", right: "50px" }, keepOpen = false, iconColor = "rgb(233 62 44)", hideIcon = false, maxLogCount = 15, disableToggleESCKey = false, }) => {
+const DevTools = ({ stores = {}, XIconPosition = { bottom: "50px", right: "50px" }, keepOpen = false, iconColor = "rgb(233 62 44)", hideIcon = false, maxLogCount = 15, from = "get-set-react", disableToggleESCKey = false, }) => {
     const [showTools, setShowTools] = React.useState(keepOpen || false);
     React.useEffect(() => {
         function addCssToHead() {
@@ -354,9 +405,10 @@ const DevTools = ({ stores = {}, XIconPosition = { bottom: "50px", right: "50px"
         addCssToHead();
         // Clean up function to remove the style element when component unmounts
         return () => {
+            var _a, _b;
             const styleElement = document.getElementById("234lsaoep23mohiuwelpmvonou");
             if (styleElement) {
-                styleElement.parentNode.removeChild(styleElement);
+                (_b = (_a = styleElement === null || styleElement === void 0 ? void 0 : styleElement.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild) === null || _b === void 0 ? void 0 : _b.call(_a, styleElement);
             }
         };
     }, []);
@@ -401,13 +453,15 @@ const DevTools = ({ stores = {}, XIconPosition = { bottom: "50px", right: "50px"
                         padding: "10px",
                     } },
                     React.createElement("span", { style: { fontWeight: "bold", fontSize: "18px" } }, "react-store-explorer")),
-                React.createElement(ErrorBoundary, { Error: ErrorComponent }, Object.keys(stores).sort().map((key) => {
+                React.createElement(ErrorBoundary, { Error: ErrorComponent }, Object.keys(stores)
+                    .sort()
+                    .map((key) => {
                     const stateValue = stores[key];
                     return stateValue &&
                         !!stateValue.getState &&
                         !!stateValue.subscribe ? (React.createElement("div", { key: key },
                         React.createElement(ErrorBoundary, { Error: ErrorComponent },
-                            React.createElement(CollapsableWrapper, { maxLogCount: maxLogCount, stateValue: stateValue, name: key }),
+                            React.createElement(CollapsableWrapper, { from: from, maxLogCount: maxLogCount, stateValue: stateValue, name: key }),
                             " "))) : (React.createElement(React.Fragment, null));
                 })),
                 Object.keys(stores).length === 0 && (React.createElement("div", { style: { textAlign: "center", marginTop: "10px" } },

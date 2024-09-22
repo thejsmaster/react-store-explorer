@@ -80,16 +80,3 @@ export function formatTimeExtended(timeString: string) {
 
   return formattedTime;
 }
-
-export function getAllProps(instance: any): any[] {
-  const props: string[] = Object.keys(instance);
-  let currentPrototype = Object.getPrototypeOf(instance);
-  while (currentPrototype !== null && currentPrototype !== Object.prototype) {
-    props.push(...Object.getOwnPropertyNames(currentPrototype));
-    currentPrototype = Object.getPrototypeOf(currentPrototype);
-  }
-  const unique = [...(new Set(props)?.values?.() || [])].filter(
-    (item) => item !== "constructor"
-  );
-  return unique;
-}

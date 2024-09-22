@@ -10,6 +10,7 @@ export type TXDevToolsProps = {
     top?: string;
     bottom?: string;
   };
+  from?: "custom" | "get-set-react" | "zustand" | "redux" ;
   iconColor?: string;
   maxLogCount?: number;
   stores: StateType;

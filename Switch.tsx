@@ -4,16 +4,18 @@ import { StateView } from "./StateView";
 import { formatTimeExtended } from "./utils";
 
 export const Switch = ({
+  from,
   actualState,
   changeList,
   setChanges,
+  previousStates = [],
   setIndex,
   index,
   name,
   maxLogCount,
 }: any) => {
   const [selectedTab, setSelectedTab] = useState<number>(0);
-  const tabs = ["State", "Change Logs"];
+  const tabs = ["State", "Change Logs", "prev states"];
 
   const spanStyle = (isSelected: boolean) => {
     return {
@@ -61,8 +63,23 @@ export const Switch = ({
           actualState
         )}
       </div>
+      <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
+        {previousStates?.length > 9 && (
+          <span>
+            <i>only showing the last {10} previous states</i>
+          </span>
+        )}
+        {typeof previousStates === "object" ? (
+          <StateView state={previousStates} />
+        ) : (
+          actualState
+        )}
+      </div>
 
       <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
+        {from !== "get-set-react" && (
+          <>only basic version of change logs is supported for {from}</>
+        )}
         {changeList.length > 0 && (
           <>
             {" "}
@@ -101,7 +118,7 @@ export const Switch = ({
             </div>
           </>
         )}
-        {changeList.map((item: any, key: number) => {
+        {(changeList || []).map((item: any, key: number) => {
           return (
             <div
               key={key}

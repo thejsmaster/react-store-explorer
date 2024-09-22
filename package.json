@@ -1,6 +1,6 @@
 {
   "name": "react-store-explorer",
-  "version": "1.0.5",
+  "version": "2.0.9",
   "type": "module",
   "description": "explore or inspect react state inside of a react application",
   "main": "index.js",
@@ -30,6 +30,18 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.2.2"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thejsmaster/react-store-explorer.git"
+  },
+  "keywords": [
+    "react-store-explorer",
+    "store explorer",
+    "react",
+    "track store changes",
+    "react dev tools",
+    "dev-tools"
+  ],
   "author": "",
   "license": "ISC"
 }
