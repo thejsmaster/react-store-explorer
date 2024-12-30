@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 export const useStoreExplorer = (
-  from,
   getSetInstance: any,
   maxLogCount: number
 ) => {
@@ -11,10 +10,17 @@ export const useStoreExplorer = (
   const [index, setIndex] = useState(0);
   useEffect(() => {
     const fn = (changesList: any = []) => {
+      if(changesList.length === 0) {
+        state !== getSetInstance.getState() && changesList.push({
+          type: "update",
+          value: getSetInstance.getState(),
+          path: "*",
+          from: "set",
+        });
+      }
       state !== getSetInstance.getState() &&
         setPreviousStates((prev) => [state, ...prev].slice(0, 10));
       setState(getSetInstance.getState());
-      from === "get-set-react" &&
       changesList &&
       Array.isArray(changesList) &&
       changesList.length > 0

@@ -10,7 +10,7 @@ export const DevTools = ({
   iconColor = "rgb(233 62 44)",
   hideIcon = false,
   maxLogCount = 15,
-  from = "get-set-react",
+  // from = "get-set-react",
   disableToggleESCKey = false,
 }: TXDevToolsProps) => {
   const [showTools, setShowTools] = useState(keepOpen || false);
@@ -113,7 +113,7 @@ export const DevTools = ({
                   <div key={key}>
                     <ErrorBoundary Error={ErrorComponent}>
                       <CollapsableWrapper
-                        from={from}
+                        // from={from}
                         maxLogCount={maxLogCount}
                         stateValue={stateValue}
                         name={key}

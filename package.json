@@ -1,6 +1,6 @@
 {
   "name": "react-store-explorer",
-  "version": "2.0.9",
+  "version": "3.0.0",
   "type": "module",
   "description": "explore or inspect react state inside of a react application",
   "main": "index.js",
@@ -8,9 +8,9 @@
     "build": " rollup -c"
   },
   "dependencies": {
-    "postcss": "^8.4.38",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "postcss": ">=8.4.38",
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
@@ -37,6 +37,8 @@
   "keywords": [
     "react-store-explorer",
     "store explorer",
+    "state visualizer",
+    "state inspector",
     "react",
     "track store changes",
     "react dev tools",

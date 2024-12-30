@@ -4,7 +4,6 @@ import { Switch } from "./Switch";
 import { useStoreExplorer } from "./useStoreExplorer";
 import React from "react";
 export const CollapsableWrapper = ({
-  from,
   stateValue,
   name,
   maxLogCount,
@@ -16,7 +15,7 @@ export const CollapsableWrapper = ({
     index,
     setIndex,
     previousStates,
-  } = useStoreExplorer(from, stateValue, maxLogCount);
+  } = useStoreExplorer(stateValue, maxLogCount);
 
   return (
     <Collapsable
@@ -49,7 +48,7 @@ export const CollapsableWrapper = ({
           setChanges={setChanges}
           maxLogCount={maxLogCount}
           index={index}
-          from={from}
+          // from={from}
           previousStates={previousStates}
           setIndex={setIndex}
           actualState={actualState}

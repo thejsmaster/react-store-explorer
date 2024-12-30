@@ -77,9 +77,6 @@ export const Switch = ({
       </div>
 
       <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
-        {from !== "get-set-react" && (
-          <>only basic version of change logs is supported for {from}</>
-        )}
         {changeList.length > 0 && (
           <>
             {" "}
@@ -139,15 +136,17 @@ export const Switch = ({
               </span>{" "}
               <StateView
                 state={{
-                  ["(" +
-                  item.from.toUpperCase().slice(0, 1) +
-                  ") " +
-                  (item.path || "*") +
-                  (item.type === "add"
-                    ? "[A]"
-                    : item.type === "update"
-                    ? "[M]"
-                    : "[D]")]: item.value,
+                  [item.from && item.type && item.path
+                    ? "(" +
+                      item.from?.toUpperCase?.()?.slice?.(0, 1) +
+                      ") " +
+                      (item.path || "*") +
+                      (item.type === "add"
+                        ? "[A]"
+                        : item.type === "update"
+                        ? "[M]"
+                        : "[D]")
+                    : "*"]: item.value,
                 }}
               />
             </div>
