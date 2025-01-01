@@ -1,14 +1,43 @@
-# React Store Explorer
+# Dev tools for zustand, redux and get-set-react
 
-React Store Explorer is a tool designed to visualize and interact with the state of your React application. It allows you to explore state changes, log previous states, and inspect how the state evolves over time. It is useful for debugging and understanding the flow of your application's state management.
+This library helps you visualise, log, debug, track state of any react application that uses **zustand**, **redux** or [get-set-react](https://www.npmjs.com/package/get-set-react). This opens dev tools inside the app so you don't need to open console to see what the state is.
 
-## Features
+Simply use **<StoreExplorer />** at app level in order to render dev tools. press **Esc** key to open it or you can click on the three dot icon.
 
-- **State Inspection**: Visualize the current state of your application, with support for complex nested objects and arrays.
-- **Change Logging**: Keep track of state changes and view a log of modifications, additions, and deletions.
-- **Previous State Views**: Access the history of previous states and inspect how state evolved over time.
-- **Collapsible UI**: Group state variables into collapsible sections to make the interface more organized.
-- **DevTools Integration**: Integrates directly into the React DevTools, providing a seamless debugging experience.
+**you can control on which environment or domain you want to render these dev tools.**
+
+## using with zustand
+
+[stackblitz demo link](https://stackblitz.com/edit/vitejs-vite-3nn61v?file=src%2FApp.tsx)
+
+```javascript
+import { create, useStore } from "zustand";
+import { StoreExplorer } from "react-store-explorer";
+
+const store = create(() => ({ count: 0 }));
+
+const incr = () => {
+  store.setState((s) => ({ count: s.count + 1 }));
+};
+const stores = { store };
+
+function App() {
+  const { count } = useStore(store);
+  return (
+    <StoreExplorer
+      stores={stores}
+      iconColor={"green"}
+      enableDevTools={true}
+    >
+      <div className="card">
+        <button onClick={() => incr()}>count is {count}</button>
+      </div>
+    </StoreExplorer>
+  );
+}
+
+export default App;
+```
 
 ## Installation
 
@@ -24,34 +53,120 @@ or
 yarn add react-store-explorer
 ```
 
-## Usage
+## using with get-set-react
 
-To integrate React Store Explorer into your application, wrap your component tree with the `StoreExplorer` component and pass your application's stores.
+[Stackblitz example](https://stackblitz.com/edit/vitejs-vite-y9jndics?file=src%2FApp.tsx)
 
 ```javascript
+import { create, useGet } from "get-set-react";
 import { StoreExplorer } from "react-store-explorer";
 
-// Example Store Implementation
-const store = {
-  getState: () => ({ count: 0 }),
-  subscribe: (callback) => {
-    // Call the callback on state changes
-    const unsubscribe = () => {
-      // Unsubscribe logic
-    };
-    return unsubscribe;
-  },
-};
+const store = create({ count: 0 });
 
-// Add Store Explorer to your component tree
+const incr = () => {
+  store.update((s) => s.count++));
+};
+const stores = { store };
+
 function App() {
+  const { count } = useGet(store);
   return (
-    <StoreExplorer stores={{ store }}>
-      <YourComponent />
+    <StoreExplorer
+      stores={stores}
+      iconColor={"green"}
+      enableDevTools={true}
+    >
+      <div className="card">
+        <button onClick={() => incr()}>count is {count}</button>
+      </div>
     </StoreExplorer>
   );
 }
+
+export default App;
 ```
+
+## using with redux
+
+[stackblitz demo link](https://stackblitz.com/edit/vitejs-vite-jqw6dq?file=src%2FApp.tsx)
+
+```javascript
+import React from "react";
+import { createStore } from "redux";
+import { Provider, useSelector, useDispatch } from "react-redux";
+import { StoreExplorer } from "react-store-explorer";
+
+// Action Types
+const INCREMENT = "INCREMENT";
+const DECREMENT = "DECREMENT";
+
+// Action Creators
+const increment = () => ({ type: INCREMENT });
+const decrement = () => ({ type: DECREMENT });
+
+// Initial State
+const initialState = {
+  count: 0,
+};
+
+// Reducer
+const counterReducer = (state = initialState, action: { type: string }) => {
+  switch (action.type) {
+    case INCREMENT:
+      return { ...state, count: state.count + 1 };
+    case DECREMENT:
+      return { ...state, count: state.count - 1 };
+    default:
+      return state;
+  }
+};
+
+// Store
+const store = createStore(counterReducer);
+
+// Counter Component
+const Counter = () => {
+  const count = useSelector((state: { count: number }) => state.count);
+  const dispatch = useDispatch();
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px", width: "100%" }}>
+      <h3>Counter: {count}</h3>
+      <button
+        onClick={() => dispatch(increment())}
+        style={{ fontSize: "20px", marginRight: "10px" }}
+      >
+        +
+      </button>
+      <button
+        onClick={() => dispatch(decrement())}
+        style={{ fontSize: "20px", marginLeft: "10px" }}
+      >
+        -
+      </button>
+    </div>
+  );
+};
+
+// App Component
+const App = () => {
+  return (
+    <Provider store={store}>
+      <StoreExplorer stores={{ store }}>
+        <Counter />
+      </StoreExplorer>
+    </Provider>
+  );
+};
+
+export default App;
+```
+
+## Features
+
+- **State Inspection**: Visualize the current state of your application, with support for complex nested objects and arrays.
+- **Change Logging**: Keep track of state changes and view a log of modifications, additions, and deletions.
+- **Previous State Views**: Access the history of previous states and inspect how state evolved over time.
 
 ### DevTools Integration
 
@@ -65,46 +180,31 @@ The explorer includes a collapsible interface and logs for state changes. When e
 
 ### `StoreExplorer`
 
-Props:
+**`Props:`**
 
 - **`stores`**: An object containing your application's stores, where each store must have `getState()` and `subscribe()` methods.
-- **`keepOpen`**: Boolean to keep the panel open by default.
-- **`maxLogCount`**: Number of state changes to store in the log history.
-- **`hideIcon`**: Option to hide the toggle icon.
-- **`disableToggleESCKey`**: Disables the ESC key for toggling the interface.
-
-## Components
-
-### `ErrorBoundary`
-
-Catches errors in the component tree and displays a fallback UI.
-
-### `Collapsable`
-
-A collapsible wrapper that shows state details and allows toggling visibility.
-
-### `Treeview`
-
-Displays nested objects and arrays in an expandable tree structure.
-
-### `Switch`
-
-Tab-based UI to switch between state views, change logs, and previous states.
+- **`iconColor`**: string: css color value to customise the icon's color
+- **`hideIcon`** : boolean: to hide the icon, you can use esc key to show or hide the panel.
+- **`XIconPosition`** : { bottom: "50px", right: "50px" } : to position the icon.
+- **`keepOpen`**: boolean : to keep the panel open by default.
+- **`maxLogCount`**: number : of state changes to store in the log history.
+- **`hideIcon`**: boolean : Option to hide the toggle icon. when icon is hidden, press 'Esc' key to toggle open.
+- **`disableToggleESCKey`**: boolean: Disables the ESC key for toggling the interface.
 
 ## Development
 
 To contribute to React Store Explorer, clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-repo/react-store-explorer
+git clone https://github.com/thejsmaster/react-store-explorer
 cd react-store-explorer
 npm install
 ```
 
-Run the development server:
+to build the package:
 
 ```bash
-npm start
+npm run build
 ```
 
 ## License

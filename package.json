@@ -1,14 +1,13 @@
 {
   "name": "react-store-explorer",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "description": "explore or inspect react state inside of a react application",
   "main": "index.js",
   "scripts": {
     "build": " rollup -c"
   },
-  "dependencies": {
-    "postcss": ">=8.4.38",
+  "peerDependencies": {
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0"
   },
